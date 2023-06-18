@@ -11,6 +11,16 @@ const config = {
       parserOptions: {
         project: path.join(__dirname, "tsconfig.json"),
       },
+      rules: {
+        "@typescript-eslint/consistent-type-exports": [
+          "warn",
+          { fixMixedExportsWithInlineTypeSpecifier: true },
+        ],
+        "@typescript-eslint/no-unnecessary-condition": [
+          "error",
+          { allowConstantLoopConditions: true },
+        ],
+      },
     },
     {
       files: ["*.cjs"],
@@ -31,6 +41,10 @@ const config = {
     "plugin:prettier/recommended",
   ],
   rules: {
+    "@typescript-eslint/consistent-type-assertions": [
+      "error",
+      { assertionStyle: "never" },
+    ],
     "@typescript-eslint/consistent-type-imports": [
       "warn",
       {
