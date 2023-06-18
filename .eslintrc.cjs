@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require("path");
 
 /** @type {import("eslint").Linter.Config} */
@@ -11,6 +10,12 @@ const config = {
       files: ["*.ts", "*.tsx"],
       parserOptions: {
         project: path.join(__dirname, "tsconfig.json"),
+      },
+    },
+    {
+      files: ["*.cjs"],
+      rules: {
+        "@typescript-eslint/no-var-requires": "off",
       },
     },
   ],
