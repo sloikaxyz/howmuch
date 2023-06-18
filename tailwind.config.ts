@@ -6,7 +6,8 @@ export default {
     extend: {},
   },
   plugins: [
-    // Add Tailwind.css plugins here
+    require("@tailwindcss/forms"),
+    require("@tailwindcss/typography"),
     require("tailwindcss-debug-screens"),
   ],
 } satisfies Config;
