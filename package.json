@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "next build",
+    "clean": "rimraf .next node_modules/.cache tsconfig.tsbuildinfo",
     "dev": "next dev",
     "lint": "next lint --report-unused-disable-directives=error",
     "lint:ci:all": "next lint --report-unused-disable-directives=error --max-warnings=0",
@@ -47,6 +48,7 @@
     "lint-staged": "^13.2.2",
     "postcss": "^8.4.21",
     "prettier": "^2.8.8",
+    "rimraf": "^5.0.1",
     "tailwindcss": "^3.3.0",
     "typescript": "^5.0.4"
   },
