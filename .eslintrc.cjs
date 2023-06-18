@@ -37,10 +37,13 @@ const config = {
   extends: [
     "next/core-web-vitals",
     "plugin:@typescript-eslint/recommended",
+    "plugin:@tanstack/eslint-plugin-query/recommended",
     "plugin:tailwindcss/recommended",
     "plugin:prettier/recommended",
   ],
   rules: {
+    "@tanstack/query/exhaustive-deps": "error",
+    "@tanstack/query/prefer-query-object-syntax": "error",
     "@typescript-eslint/consistent-type-assertions": [
       "error",
       { assertionStyle: "never" },

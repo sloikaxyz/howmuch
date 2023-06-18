@@ -29,6 +29,7 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
+    "@tanstack/eslint-plugin-query": "^4.29.9",
     "@total-typescript/ts-reset": "^0.4.2",
     "@types/eslint": "^8.37.0",
     "@types/lint-staged": "^13.2.0",
