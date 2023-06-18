@@ -5,5 +5,8 @@ export default {
   theme: {
     extend: {},
   },
-  plugins: [],
+  plugins: [
+    // Add Tailwind.css plugins here
+    require("tailwindcss-debug-screens"),
+  ],
 } satisfies Config;
