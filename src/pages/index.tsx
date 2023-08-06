@@ -1,8 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { FixedNumber, formatUnits, parseUnits } from "ethers";
+import { FixedNumber } from "ethers";
 import Head from "next/head";
 import { useCallback, useMemo, useState, type ChangeEventHandler } from "react";
+import invariant from "tiny-invariant";
 import { z } from "zod";
+
+import { env } from "~/env.mjs";
 
 function QuantityForm({
   initialQuantity,
@@ -56,48 +59,27 @@ function QuantityForm({
   );
 }
 
-const GASPRICEIO_HISTORY_ENDPOINT = "https://api.gasprice.io/v1/historyByHour";
-
-const GASPRICEIO_ESTIMATE_SCHEMA = z.object({
-  feeCap: z.number(),
-  maxPriorityFee: z.number(),
+const DUNE_GAS_QUERY_SCHEMA = z.object({
+  result: z.object({
+    rows: z
+      .array(
+        z.object({
+          p50_gas_price: z.number(),
+        })
+      )
+      .min(1)
+      .max(1),
+  }),
 });
 
-const GASPRICEIO_HISTORY_SCHEMA = z
-  .object({
-    error: z.null(),
-    result: z.array(
-      z.object({
-        timestamp: z.number(),
-        estimates: z.object({
-          instant: GASPRICEIO_ESTIMATE_SCHEMA,
-          fast: GASPRICEIO_ESTIMATE_SCHEMA,
-          eco: GASPRICEIO_ESTIMATE_SCHEMA,
-          baseFee: z.number(),
-        }),
-      })
-    ),
-  })
-  .or(
-    z.object({
-      error: z.string(),
-    })
-  );
+const TX_GAS_BASE = BigInt(506061);
+const TX_GAS_PER_PHOTO = BigInt(25687);
 
-/**
- * Gets gas price history from gasprice.io
- * @param param0.duration - duration in seconds
- */
-function useGasPriceHistory({ duration }: { duration: number }) {
-  return useQuery({
-    queryKey: [
-      GASPRICEIO_HISTORY_ENDPOINT,
-      { duration: duration.toString() },
-    ] as const,
-    queryFn: async ({ queryKey: [endpoint, query] }) => {
-      const response = await fetch(
-        `${endpoint}?${new URLSearchParams(query).toString()}`
-      );
+export default function Home() {
+  const { data: gasPriceGwei } = useQuery({
+    queryKey: [env.NEXT_PUBLIC_DUNE_GAS_QUERY_API_URL] as const,
+    queryFn: async ({ queryKey: [endpoint] }) => {
+      const response = await fetch(endpoint);
 
       if (!response.ok) {
         throw new Error(
@@ -105,35 +87,14 @@ function useGasPriceHistory({ duration }: { duration: number }) {
         );
       }
 
-      const responseJSON = GASPRICEIO_HISTORY_SCHEMA.parse(
-        await response.json()
-      );
+      const responseJSON = await response.json();
+      const data = DUNE_GAS_QUERY_SCHEMA.parse(responseJSON);
+      const [gasPriceResultRow] = data.result.rows;
+      invariant(typeof gasPriceResultRow !== "undefined");
 
-      if (typeof responseJSON.error === "string") {
-        throw new Error(responseJSON.error);
-      }
-
-      return responseJSON.result;
+      return BigInt(gasPriceResultRow.p50_gas_price);
     },
   });
-}
-
-const TX_GAS_BASE = BigInt(506061);
-const TX_GAS_PER_PHOTO = BigInt(25687);
-
-export default function Home() {
-  const { data: gasPriceHistory } = useGasPriceHistory({ duration: 86400 * 7 });
-  const averageEcoFeeCapWei = useMemo(
-    () =>
-      Array.isArray(gasPriceHistory)
-        ? gasPriceHistory.reduce(
-            (acc, curr) =>
-              acc + parseUnits(curr.estimates.eco.feeCap.toFixed(9), "gwei"),
-            BigInt(0)
-          ) / BigInt(gasPriceHistory.length)
-        : undefined,
-    [gasPriceHistory]
-  );
 
   const [quantity, setQuantity] = useState(100);
 
@@ -142,20 +103,18 @@ export default function Home() {
     [quantity]
   );
 
-  const txGasCostWei = useMemo(
+  const txGasCostGwei = useMemo(
     () =>
-      typeof averageEcoFeeCapWei !== "undefined"
-        ? txGas * averageEcoFeeCapWei
-        : undefined,
-    [txGas, averageEcoFeeCapWei]
+      typeof gasPriceGwei !== "undefined" ? txGas * gasPriceGwei : undefined,
+    [txGas, gasPriceGwei]
   );
 
   const txGasCostEthRounded = useMemo(
     () =>
-      typeof txGasCostWei !== "undefined"
-        ? FixedNumber.fromValue(txGasCostWei, 18, { decimals: 18 }).round(5)
+      typeof txGasCostGwei !== "undefined"
+        ? FixedNumber.fromValue(txGasCostGwei, 9, { decimals: 9 }).round(5)
         : undefined,
-    [txGasCostWei]
+    [txGasCostGwei]
   );
 
   return (
@@ -180,9 +139,16 @@ export default function Home() {
             <wbr />
             <span>
               &times;{" "}
-              {typeof averageEcoFeeCapWei !== "undefined"
-                ? `${formatUnits(averageEcoFeeCapWei, "gwei")} gwei per gas`
-                : "… gwei per gas"}
+              {typeof gasPriceGwei !== "undefined" ? (
+                <span
+                  className="underline decoration-gray-300 decoration-dotted"
+                  title={`${gasPriceGwei.toString()} gwei is the median gas price over the last week`}
+                >
+                  {gasPriceGwei.toString()} gwei per gas
+                </span>
+              ) : (
+                "… gwei per gas"
+              )}
             </span>
           </p>
         </div>
