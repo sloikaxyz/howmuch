@@ -10,14 +10,14 @@
     "build": "next build",
     "clean": "rimraf .next node_modules/.cache tsconfig.tsbuildinfo",
     "dev": "next dev",
-    "lint": "next lint --report-unused-disable-directives=error",
-    "lint:ci:all": "next lint --report-unused-disable-directives=error --max-warnings=0",
-    "lint:fix:all": "next lint --report-unused-disable-directives=error --fix",
-    "lint:precommit": "next lint --report-unused-disable-directives=error --fix --max-warnings=0",
+    "lint": "SKIP_ENV_VALIDATION=1 next lint --report-unused-disable-directives=error",
+    "lint:ci:all": "SKIP_ENV_VALIDATION=1 next lint --report-unused-disable-directives=error --max-warnings=0",
+    "lint:fix:all": "SKIP_ENV_VALIDATION=1 next lint --report-unused-disable-directives=error --fix",
+    "lint:precommit": "SKIP_ENV_VALIDATION=1 next lint --report-unused-disable-directives=error --fix --max-warnings=0",
     "precommit": "lint-staged",
     "prepare": "(husky install || (echo 'WARN: husky not installed' && exit 0))",
     "start": "next start",
-    "tsc:typecheck": "tsc -p tsconfig.json --noEmit"
+    "tsc:typecheck": "SKIP_ENV_VALIDATION=1 tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@t3-oss/env-nextjs": "^0.4.1",
