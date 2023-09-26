@@ -52,7 +52,7 @@
     "eslint-plugin-tailwindcss": "^3.13.0",
     "husky": "^8.0.3",
     "lint-staged": "^13.3.0",
-    "postcss": "^8.4.29",
+    "postcss": "^8.4.30",
     "prettier": "^2.8.8",
     "rimraf": "^5.0.1",
     "tailwindcss": "^3.3.3",
